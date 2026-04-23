@@ -23,6 +23,15 @@ class VillaResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('contact_phone')
+                    ->label('No Penjaga Villa')
+                    ->tel()
+                    ->maxLength(20),
+
+                Forms\Components\TextInput::make('google_maps_link')
+                    ->label('Link Google Maps')
+                    ->url()
+                    ->placeholder('https://maps.google.com/...'),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255)

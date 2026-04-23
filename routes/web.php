@@ -63,10 +63,17 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/booking/{id}', [BookingController::class, 'show'])->name('bookings.show');
 
-    // 💳 Payment Routes
-    Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
-    Route::get('/payment/{id}', [PaymentController::class, 'show'])->name('payments.show');
+// 💳 Payment Routes
+Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
+    // Menampilkan halaman upload bukti (form)
     Route::get('/payment/booking/{booking_id}', [PaymentController::class, 'create'])->name('payments.create');
+    
+    // Proses simpan bukti pembayaran
+    Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+    
+    // Menampilkan detail payment (opsional jika dibutuhkan)
+    Route::get('/payment/{id}', [PaymentController::class, 'show'])->name('payments.show');
+});
 
     // Dashboard and invoice
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');

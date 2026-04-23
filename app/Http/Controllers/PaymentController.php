@@ -5,14 +5,39 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
+    /**
+     * Menampilkan form upload bukti pembayaran
+     */
+    public function create($booking_id)
+    {
+        $user = auth()->user();
+        $booking = Booking::with('villa')->findOrFail($booking_id);
+
+        // Validasi kepemilikan
+        if ($booking->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Validasi status: User hanya bisa upload jika admin sudah approve booking
+        if ($booking->status !== 'approved') {
+            return redirect('/dashboard')->withErrors(['error' => 'Booking harus disetujui admin terlebih dahulu.']);
+        }
+
+        return view('payment.create', compact('booking'));
+    }
+
+    /**
+     * Memproses upload bukti pembayaran
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
 
-        // ✅ VALIDASI INPUT
+        // 1. Validasi Input
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
             'proof' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -20,70 +45,53 @@ class PaymentController extends Controller
 
         $booking = Booking::findOrFail($request->booking_id);
 
-        // 🔐 SECURITY: Validasi booking milik user yang login (CRITICAL!)
+        // 2. Keamanan: Cek kepemilikan booking
         if ($booking->user_id !== $user->id) {
-            abort(403, 'Unauthorized: Booking bukan milik Anda');
+            abort(403, 'Unauthorized');
         }
 
-        // 🔐 SECURITY: Validasi status harus 'approved' (tidak boleh bypass)
+        // 3. Keamanan: Cek status booking
         if ($booking->status !== 'approved') {
-            return back()->withErrors(['error' => 'Booking belum disetujui admin. Status saat ini: ' . $booking->status]);
+            return back()->withErrors(['error' => 'Status booking tidak valid untuk pembayaran.']);
         }
 
-        // 🔐 SECURITY: Cek apakah payment sudah pernah dibuat untuk booking ini?
-        if ($booking->payment()->exists()) {
-            return back()->withErrors(['error' => 'Booking ini sudah memiliki payment. Hubungi admin untuk bantuan.']);
+        // 4. Proses File
+        if ($request->hasFile('proof')) {
+            // Simpan file ke storage/public/payments
+            $proofPath = $request->file('proof')->store('payments', 'public');
+
+            // 5. Update atau Buat Record Payment
+            // Gunakan updateOrCreate agar tidak terjadi duplikasi data payment untuk 1 booking
+            $payment = Payment::updateOrCreate(
+                ['booking_id' => $booking->id],
+                [
+                    'amount' => $booking->total_price,
+                    'proof' => $proofPath,
+                    'status' => 'pending',
+                    'payment_method' => 'manual_transfer',
+                ]
+            );
+
+            // 6. Update Status Booking menjadi 'paid'
+            $booking->update(['status' => 'paid']);
+
+            // 7. Redirect ke Dashboard
+            return redirect()->route('dashboard')->with('success', 'Bukti pembayaran berhasil diupload! Admin akan segera memverifikasi.');
         }
 
-        // 🔐 SECURITY: Validasi file upload
-        if (!$request->hasFile('proof')) {
-            return back()->withErrors(['proof' => 'File bukti pembayaran harus diupload']);
-        }
-
-        // ✅ SIMPAN FILE
-        $proofPath = $request->file('proof')->store('payments', 'public');
-
-        // ✅ BUAT PAYMENT (only user yang login yang bisa)
-        $payment = Payment::create([
-            'booking_id' => $booking->id,
-            'amount' => $booking->total_price,
-            'proof' => $proofPath,
-            'status' => 'pending',
-            'payment_method' => 'manual_transfer', // Default untuk user upload
-        ]);
-
-        // 🔐 SECURITY: Update booking status ke 'paid' otomatis
-        $booking->update(['status' => 'paid']);
-
-        return redirect('/payment/' . $payment->id)->with('success', 'Bukti pembayaran berhasil diupload. Tunggu verifikasi admin.');
+        return back()->withErrors(['proof' => 'Gagal mengupload file bukti pembayaran.']);
     }
 
-    public function create($booking_id)
-    {
-        $user = auth()->user();
-        $booking = \App\Models\Booking::with('villa')->findOrFail($booking_id);
-
-        // 🔐 SECURITY: Validasi ownership - user hanya bisa akses booking sendiri
-        if ($booking->user_id !== $user->id) {
-            abort(403, 'Unauthorized: Booking bukan milik Anda');
-        }
-
-        // 🔐 SECURITY: Validasi status harus 'approved' (tidak boleh bypass)
-        if ($booking->status !== 'approved') {
-            return redirect('/dashboard')->withErrors(['error' => 'Booking belum disetujui admin. Status saat ini: ' . $booking->status]);
-        }
-
-        return view('payment.create', compact('booking'));
-    }
-
+    /**
+     * Menampilkan detail pembayaran
+     */
     public function show($id)
     {
         $user = auth()->user();
         $payment = Payment::with('booking.villa')->findOrFail($id);
 
-        // 🔐 SECURITY: Validasi ownership - user hanya bisa lihat payment sendiri
         if ($payment->booking->user_id !== $user->id) {
-            abort(403, 'Unauthorized: Payment bukan milik Anda');
+            abort(403, 'Unauthorized');
         }
 
         return view('payment.show', compact('payment'));

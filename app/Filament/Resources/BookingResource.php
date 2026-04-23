@@ -19,6 +19,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Filament\Tables\Columns\ImageColumn;
 
 class BookingResource extends Resource
 {
@@ -133,6 +134,15 @@ public static function form(Form $form): Form
                     ->label('Total Price')
                     ->money('IDR')
                     ->sortable(),
+ImageColumn::make('payment.proof')
+    ->label('Bukti Bayar')
+    ->disk('public')
+    ->height(80)
+    ->square()
+    ->extraImgAttributes([
+        'style' => 'cursor:pointer',
+        'onclick' => "window.open(this.src, '_blank')"
+    ]),
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Status')

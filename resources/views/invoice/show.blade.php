@@ -46,4 +46,29 @@
     </div>
 
 </div>
+<div class="mt-6 p-4 bg-gray-50 rounded-xl">
+
+    <h3 class="font-semibold mb-2">📍 Informasi Villa</h3>
+
+    <!-- NOMOR PENJAGA -->
+    <p class="mb-2">
+        <strong>📞 Kontak Penjaga:</strong><br>
+        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $booking->villa->contact_phone) }}"
+           class="text-green-600 underline"
+           target="_blank">
+            {{ $booking->villa->contact_pengelola_villa }}
+        </a>
+    </p>
+
+    <!-- GOOGLE MAPS -->
+    <p>
+        <strong>🗺️ Lokasi Villa:</strong><br>
+        <a href="{{ $booking->villa->google_maps_link }}"
+           target="_blank"
+           class="text-blue-600 underline">
+            Buka di Google Maps
+        </a>
+    </p>
+
+</div>
 @endsection

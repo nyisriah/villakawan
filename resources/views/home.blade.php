@@ -21,7 +21,7 @@
         </h1>
 
         <p class="text-gray-200 text-sm md:text-lg mb-6 max-w-xl">
-            Nikmati pengalaman menginap terbaik dengan pemandangan alam yang menenangkan dan fasilitas lengkap.
+        
         </p>
 
         <a href="/villas" class="bg-primary text-white px-6 py-3 rounded-full shadow hover:shadow-lg hover:bg-green-700 transition">
@@ -32,8 +32,8 @@
 
 <!-- 🏡 VILLA LIST -->
 <div class="mt-10">
-    <h2 class="text-2xl font-bold text-primary mb-6">
-        Villa Rekomendasi Kami
+    <h2 class="text-2xl font-serif text-serif mb-6">
+        Villa Terpopuler di Puncak
 
     </h2>
 
@@ -88,8 +88,8 @@
 </div>
 <!-- 🎯 LAYANAN -->
 <div class="mt-16">
-    <h2 class="text-2xl font-bold text-primary mb-6">
-        Layanan Kami
+    <h2 class="text-2xl font-serif text-serif mb-6">
+        Layanan Unggulan Kami
     </h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -156,8 +156,8 @@
 
 <!-- 🌄 WISATA MENARIK -->
 <div class="mt-16">
-    <h2 class="text-2xl font-bold text-primary mb-6">
-        Rekomendasi Wisata Terdekat
+    <h2 class="text-2xl font-serif text-serif mb-6">
+        Rekomendasi Wisata Menarik di Puncak
     </h2>
 
     @php
@@ -233,9 +233,11 @@
 
     // ⌨️ MULTI TYPING EFFECT
     const texts = [
-        "Temukan Villa Impian Anda",
-        "Liburan Nyaman di Puncak",
-        "Pengalaman Menginap Tak Terlupakan"
+        "Selamat Datang Di KawanPuncak.Com",
+        "Layanan Profesional 24 Jam",
+        "Proses Booking Praktis & Transparan",
+        "Fasilitas Lengkap & Nyaman",
+        "Harga Kompetitif & Terjangkau",
     ];
 
     let textIndex = 0;
